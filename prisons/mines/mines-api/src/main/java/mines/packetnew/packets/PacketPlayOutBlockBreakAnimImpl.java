@@ -1,15 +1,14 @@
-package mines.packets.packets;
+package mines.packetnew.packets;
 
-
+import net.minecraft.network.protocol.game.PacketPlayOutBlockBreak;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockBreakAnimation;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityEquipment;
 import org.bukkit.entity.Player;
 
-public class PacketPlayOutBlockBreakAnimationImpl extends PacketEvent<PacketPlayOutBlockBreakAnimation> {
+public class PacketPlayOutBlockBreakAnimImpl extends PacketEvent<PacketPlayOutBlockBreakAnimation> {
 
     private PacketPlayOutBlockBreakAnimation packet;
 
-    public PacketPlayOutBlockBreakAnimationImpl(Player player, PacketPlayOutBlockBreakAnimation packet) {
+    public PacketPlayOutBlockBreakAnimImpl(Player player, PacketPlayOutBlockBreakAnimation packet) {
         super(player);
         this.packet = packet;
     }

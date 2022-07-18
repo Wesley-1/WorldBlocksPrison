@@ -1,4 +1,4 @@
-package mines.packets.subscription;
+package mines.packetnew.subscription;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;

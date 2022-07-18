@@ -1,4 +1,4 @@
-package mines.packets.packets;
+package mines.packetnew.packets;
 
 import net.minecraft.network.protocol.game.PacketPlayInBlockDig;
 import org.bukkit.entity.Player;

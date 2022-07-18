@@ -1,17 +1,22 @@
-package mines.packets.handlers;
+package mines.packetnew.handler;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
-import mines.packets.packets.PacketEvent;
-import mines.packets.subscription.EventSubscriptions;
+import io.netty.channel.DefaultChannelPromise;
+import lombok.Getter;
+import mines.packetnew.packets.PacketEvent;
+import mines.packetnew.subscription.EventSubscriptions;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-public class WorldBlocksPacketHandler extends ChannelDuplexHandler {
+public class WorldChannelDuplexHandler extends ChannelDuplexHandler {
+    private final Player player;
 
-    private Player player;
+    @Getter private ChannelHandlerContext ctx = null;
+    @Getter private ChannelPromise promise = null;
 
-    public WorldBlocksPacketHandler(Player player) {
+    public WorldChannelDuplexHandler(Player player) {
         this.player = player;
     }
 
@@ -30,6 +35,10 @@ public class WorldBlocksPacketHandler extends ChannelDuplexHandler {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+
+        this.ctx = ctx;
+        this.promise = promise;
+
         PacketEvent<?> event = PacketEvent.get(player, msg);
         if (event == null) {
             super.write(ctx, msg, promise);

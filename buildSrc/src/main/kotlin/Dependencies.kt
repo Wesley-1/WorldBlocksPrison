@@ -3,6 +3,7 @@ object Versions {
     const val SPIGOT_VERSION = "1.17-R0.1-SNAPSHOT"
     const val LOMBOK_VERSION = "1.18.20"
     const val REFLECTIONS_VERSION = "0.10.2";
+    const val WORLDGUARDWRAPPER = "1.2.0-SNAPSHOT"
     const val LUCKO_HELPER_VERSION = "5.6.10"
     const val LUCKO_SQL_VERSION = "1.3.0"
     const val LUCKO_MONGO_VERSION = "1.2.0"
@@ -17,6 +18,7 @@ object Dependencies {
     const val SPIGOT = "org.spigotmc:spigot-api:${Versions.SPIGOT_VERSION}"
     const val LOMBOK = "org.projectlombok:lombok:${Versions.LOMBOK_VERSION}"
     const val REFLECTIONS = "org.reflections:reflections:${Versions.REFLECTIONS_VERSION}"
+    const val WORLDGUARDWRAPPER = "org.codemc.worldguardwrapper:worldguardwrapper:${Versions.WORLDGUARDWRAPPER}"
     const val LUCKO_HELPER = "me.lucko:helper:${Versions.LUCKO_HELPER_VERSION}"
     const val LUCKO_SQL = "me.lucko:helper-sql:${Versions.LUCKO_SQL_VERSION}"
     const val LUCKO_REDIS = "me.lucko:helper-redis:${Versions.LUCKO_REDIS_VERSION}"

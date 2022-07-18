@@ -1,4 +1,4 @@
-package mines.packets.subscription;
+package mines.packetnew.subscription;
 
 import java.lang.annotation.Annotation;
 import java.lang.ref.WeakReference;
@@ -77,10 +77,10 @@ public class ObjectSubscriptions<A extends Annotation> {
     }
 
     @Deprecated
-    @SuppressWarnings("unchecked")
     public <T> void subscribe(T object) {
         subscribe(object, object.getClass());
     }
+
     public <T> void subscribe(T object, Class<?> clazz) {
         lock.lock();
         try {
