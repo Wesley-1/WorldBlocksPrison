@@ -1,6 +1,7 @@
 package mines.packetnew.listeners;
 
 import me.lucko.helper.scheduler.Scheduler;
+import me.lucko.shadow.bukkit.BukkitShadowFactory;
 import mines.Mines;
 import mines.packetnew.events.WorldBlocksBreakEvent;
 import org.bukkit.Bukkit;
@@ -29,6 +30,7 @@ public class WorldBlocksBreak implements Listener {
         Player player = event.getPlayer();
         Block block = event.getBlock();
         block.getDrops().clear();
+
 
     }
 }

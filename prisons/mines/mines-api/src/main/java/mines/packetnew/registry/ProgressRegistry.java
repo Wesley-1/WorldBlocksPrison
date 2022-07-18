@@ -1,8 +1,6 @@
-package mines.packets.registry;
+package mines.packetnew.registry;
 
 import net.minecraft.core.BlockPosition;
-import org.bukkit.entity.Player;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.concurrent.ConcurrentHashMap;
 

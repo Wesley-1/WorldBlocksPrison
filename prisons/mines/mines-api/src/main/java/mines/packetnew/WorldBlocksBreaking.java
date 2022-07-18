@@ -19,7 +19,10 @@ import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.game.PacketPlayInBlockDig;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockBreak;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockBreakAnimation;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
 import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectList;
 import net.minecraft.world.level.World;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.Bukkit;
@@ -46,7 +49,6 @@ public class WorldBlocksBreaking {
     private static Field dura;
     private static Field prog;
     private final ProgressRegistry registry;
-    private final ReentrantLock lock;
 
     static {
         try {
@@ -78,13 +80,15 @@ public class WorldBlocksBreaking {
     public WorldBlocksBreaking(ProgressRegistry registry) {
         EventSubscriptions.instance.subscribe(this, getClass());
         this.registry = registry;
-        this.lock = new ReentrantLock();
     }
 
     @EventSubscription
     private void onPacketPlayInDig(PacketPlayInBlockDigImpl event) throws IllegalAccessException {
         PacketPlayInBlockDig packet = event.getPacket();
         BlockPosition blockPos = (BlockPosition) blockPositionDigIn.get(packet);
+
+        PacketPlayOutEntityEffect entityEffect = new PacketPlayOutEntityEffect(event.getPlayer().getEntityId(), new MobEffect(MobEffectList.fromId(PotionEffectType.SLOW_DIGGING.getId()),Integer.MAX_VALUE, 255, true, false));
+        WorldBlocksInjector.sendPacket(event.getPlayer(), entityEffect);
 
         if (registry.getBlocksBreaking().containsKey(blockPos)) {
             registry.getBlocksBreaking().remove(blockPos);
@@ -117,12 +121,6 @@ public class WorldBlocksBreaking {
          */
         System.out.println("Testing blockbreak");
         inBool.set(packet, true);
-    }
-
-    @EventSubscription
-    private void onPacketBlockBreakAnim(PacketPlayOutBlockBreakAnimImpl event) throws IllegalAccessException {
-        PacketPlayOutBlockBreakAnimation packet = event.getPacket();
-        BlockPosition position = (BlockPosition) blockPositionBlockBreakAnim.get(packet);
     }
 
     public void updatePacket() {
@@ -177,7 +175,8 @@ public class WorldBlocksBreaking {
 
                     int newDigTick = currentDigTick - lastDigTick;
 
-                    float newDamage = blockData.getDamage(entityPlayer, world, blockPosition) * (float) (newDigTick + 1);
+                    float itemDamage = 0.055555556f;
+                    float newDamage = itemDamage * (float) (newDigTick + 1);
                     double doubleProgress = (newDamage * 100f) * hardnessMultiplier;
 
                     if (registry.getBlockProgress().containsKey(blockPosition)) {

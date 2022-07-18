@@ -4,6 +4,7 @@ import mines.packetnew.injector.WorldBlocksInjector;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.potion.PotionEffectType;
 
 public class PlayerQuit implements Listener {
 
@@ -15,6 +16,7 @@ public class PlayerQuit implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        event.getPlayer().removePotionEffect(PotionEffectType.SLOW_DIGGING);
         injector.unInject(event.getPlayer());
         System.out.println("Uninjecting");
     }
