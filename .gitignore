@@ -1,0 +1,6 @@
+# Project exclude paths
+/.gradle/
+/buildSrc/.gradle/
+/buildSrc/build/
+/prisons/mines/mines-api/build/
+/prisons/mines/mines-api/build/classes/java/main/
