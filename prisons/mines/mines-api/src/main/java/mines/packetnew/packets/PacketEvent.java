@@ -13,6 +13,7 @@ public abstract class PacketEvent<T> implements Cancellable {
 
     public PacketEvent(Player player, T packet) {
         this.player = player;
+        this.packet = packet;
     }
 
     public Player getPlayer() {

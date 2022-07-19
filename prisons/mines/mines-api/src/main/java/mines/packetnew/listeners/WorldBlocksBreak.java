@@ -1,10 +1,12 @@
 package mines.packetnew.listeners;
 
+import com.mojang.datafixers.util.Pair;
 import me.lucko.helper.scheduler.Scheduler;
 import me.lucko.shadow.bukkit.BukkitShadowFactory;
 import mines.Mines;
 import mines.packetnew.events.WorldBlocksBreakEvent;
 import mines.packetnew.injector.WorldBlocksInjector;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityEquipment;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
 import net.minecraft.server.network.PlayerConnection;
@@ -26,6 +28,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -51,11 +54,12 @@ public class WorldBlocksBreak implements Listener {
         final World nmsWorld = ((CraftWorld) block.getWorld()).getHandle();
         final EntityArmorStand entityArmorStand = new EntityArmorStand(nmsWorld, block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5);
         entityArmorStand.setInvisible(true);
-        entityArmorStand.setSlot(EnumItemSlot.f, CraftItemStack.asNMSCopy(clonedDrops.get(0)));
 
         final PacketPlayOutSpawnEntity packetPlayOutSpawnEntity = new PacketPlayOutSpawnEntity(entityArmorStand);
+        final PacketPlayOutEntityEquipment packetPlayOutEntityEquipment = new PacketPlayOutEntityEquipment(entityArmorStand.getId(), Arrays.asList(Pair.of(EnumItemSlot.f, CraftItemStack.asNMSCopy(clonedDrops.get(0)))));
         final PacketPlayOutEntityMetadata packetPlayOutEntityMetadata = new PacketPlayOutEntityMetadata(entityArmorStand.getId(), entityArmorStand.getDataWatcher(), true);
         WorldBlocksInjector.sendPacket(player, packetPlayOutSpawnEntity);
+        WorldBlocksInjector.sendPacket(player, packetPlayOutEntityEquipment);
         WorldBlocksInjector.sendPacket(player, packetPlayOutEntityMetadata);
     }
 }
