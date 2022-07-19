@@ -1,16 +1,9 @@
 package mines.packetnew;
 
-import io.netty.channel.DefaultChannelPromise;
-import me.lucko.helper.Helper;
 import me.lucko.helper.bossbar.*;
-import me.lucko.helper.text3.Text;
 import mines.packetnew.events.WorldBlocksBreakEvent;
-import mines.packetnew.handler.WorldChannelDuplexHandler;
 import mines.packetnew.injector.WorldBlocksInjector;
-import mines.packetnew.listeners.BlockDamage;
-import mines.packetnew.listeners.WorldBlocksBreak;
 import mines.packetnew.packets.PacketPlayInBlockDigImpl;
-import mines.packetnew.packets.PacketPlayOutBlockBreakAnimImpl;
 import mines.packetnew.packets.PacketPlayOutBlockBreakImpl;
 import mines.packetnew.registry.ProgressRegistry;
 import mines.packetnew.subscription.EventSubscription;
@@ -28,16 +21,13 @@ import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 
 import java.lang.reflect.Field;
-import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class WorldBlocksBreaking {
 

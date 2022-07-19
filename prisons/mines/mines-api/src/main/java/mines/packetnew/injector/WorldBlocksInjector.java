@@ -4,19 +4,9 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.DefaultChannelPromise;
 import mines.packetnew.handler.WorldChannelDuplexHandler;
-import mines.packetnew.subscription.EventSubscription;
 import mines.packetnew.subscription.EventSubscriptions;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
-import net.minecraft.server.network.PlayerConnection;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectList;
-import org.bukkit.craftbukkit.v1_17_R1.block.impl.CraftTallPlant;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.potion.PotionEffectType;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -61,18 +51,15 @@ public class WorldBlocksInjector {
     }
 
     public static void sendPacket(Player player, Object packet) {
-        for (Player p : playerHandler.keySet()) {
-            if (p.getUniqueId() == player.getUniqueId()) {
+        WorldChannelDuplexHandler handler = playerHandler.get(player);
+        if (handler == null) {
+            return;
+        }
 
-                WorldChannelDuplexHandler handler = playerHandler.get(p);
-
-                try {
-                    handler.write(handler.getCtx(), packet, new DefaultChannelPromise(handler.getPromise().channel()));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-            }
+        try {
+            handler.write(handler.getCtx(), packet, new DefaultChannelPromise(handler.getPromise().channel()));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

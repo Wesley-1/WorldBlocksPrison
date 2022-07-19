@@ -9,8 +9,9 @@ import org.bukkit.event.Cancellable;
 public abstract class PacketEvent<T> implements Cancellable {
     private boolean canceled = false;
     private Player player;
+    private T packet;
 
-    public PacketEvent(Player player) {
+    public PacketEvent(Player player, T packet) {
         this.player = player;
     }
 
@@ -28,8 +29,13 @@ public abstract class PacketEvent<T> implements Cancellable {
         canceled = cancel;
     }
 
-    public abstract T getPacket();
-    public abstract void setPacket(T packet);
+    public T getPacket() {
+        return packet;
+    }
+
+    public void setPacket(T packet) {
+        this.packet = packet;
+    }
 
     public static PacketEvent<?> get(Player player, Object o) {
         //In packets.

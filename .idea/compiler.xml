@@ -10,6 +10,6 @@
         <module name="WorldBlocksPrison.mines-api.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="16" />
+    <bytecodeTargetLevel target="1.8" />
   </component>
 </project>

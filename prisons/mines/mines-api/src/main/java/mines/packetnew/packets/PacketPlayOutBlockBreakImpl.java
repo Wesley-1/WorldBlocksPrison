@@ -5,21 +5,8 @@ import org.bukkit.entity.Player;
 
 public class PacketPlayOutBlockBreakImpl extends PacketEvent<PacketPlayOutBlockBreak> {
 
-    private PacketPlayOutBlockBreak packet;
-
     public PacketPlayOutBlockBreakImpl(Player player, PacketPlayOutBlockBreak packet) {
-        super(player);
-        this.packet = packet;
-    }
-
-    @Override
-    public PacketPlayOutBlockBreak getPacket() {
-        return this.packet;
-    }
-
-    @Override
-    public void setPacket(PacketPlayOutBlockBreak packet) {
-        this.packet = packet;
+        super(player, packet);
     }
 }
 
