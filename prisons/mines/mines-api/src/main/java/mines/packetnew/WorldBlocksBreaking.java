@@ -141,7 +141,6 @@ public class WorldBlocksBreaking {
             bossBar = new BukkitBossBarFactory(Bukkit.getServer()).newBossBar().color(BossBarColor.GREEN).style(BossBarStyle.SOLID);
         }
 
-        updatePacket();
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (player == null) return;
             try {
@@ -190,22 +189,26 @@ public class WorldBlocksBreaking {
                     double bossBarProgress = blockProgress / 100;
 
                     if (blockProgress < 100 && blockProgress > -1) {
-                        bossBar.title("&a&lBlock Progress: &f&l" + Math.round(blockProgress) + "%");
+                        bossBar.title("&a&lBlock Progress: &f&l" + (Math.round(blockProgress * 100) / 100.0) + "%");
                         bossBar.addPlayer(player);
                         bossBar.progress(bossBarProgress);
                         continue;
                     }
 
+                    PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(registry.getRandomIntegers().get(blockPosition), blockPosition, 0);
+                    WorldBlocksInjector.sendPacket(player, packet);
+
                     registry.getBlockProgress().remove(blockPosition);
+                    registry.getOldBlockProgress().remove(blockPosition);
+
                     Bukkit.getPluginManager().callEvent(new WorldBlocksBreakEvent(block, player));
                     bossBar.close();
-                    if (registry.getOldBlockProgress().containsKey(blockPosition)) {
-                        registry.getOldBlockProgress().remove(blockPosition);
-                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+
+        updatePacket();
     }
 }
