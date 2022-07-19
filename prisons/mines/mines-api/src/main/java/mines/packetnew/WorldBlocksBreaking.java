@@ -1,6 +1,9 @@
 package mines.packetnew;
 
-import me.lucko.helper.bossbar.*;
+import me.lucko.helper.bossbar.BossBar;
+import me.lucko.helper.bossbar.BossBarColor;
+import me.lucko.helper.bossbar.BossBarStyle;
+import me.lucko.helper.bossbar.BukkitBossBarFactory;
 import mines.packetnew.events.WorldBlocksBreakEvent;
 import mines.packetnew.injector.WorldBlocksInjector;
 import mines.packetnew.packets.PacketPlayInBlockDigImpl;
@@ -77,7 +80,7 @@ public class WorldBlocksBreaking {
         PacketPlayInBlockDig packet = event.getPacket();
         BlockPosition blockPos = (BlockPosition) blockPositionDigIn.get(packet);
 
-        PacketPlayOutEntityEffect entityEffect = new PacketPlayOutEntityEffect(event.getPlayer().getEntityId(), new MobEffect(MobEffectList.fromId(PotionEffectType.SLOW_DIGGING.getId()),Integer.MAX_VALUE, 255, true, false));
+        PacketPlayOutEntityEffect entityEffect = new PacketPlayOutEntityEffect(event.getPlayer().getEntityId(), new MobEffect(MobEffectList.fromId(PotionEffectType.SLOW_DIGGING.getId()), Integer.MAX_VALUE, 255, true, false));
         WorldBlocksInjector.sendPacket(event.getPlayer(), entityEffect);
 
         if (registry.getBlocksBreaking().containsKey(blockPos)) {
@@ -135,7 +138,7 @@ public class WorldBlocksBreaking {
 
     public void progression(JavaPlugin mainClass) {
         if (bossBar == null) {
-           bossBar = new BukkitBossBarFactory(Bukkit.getServer()).newBossBar().color(BossBarColor.GREEN).style(BossBarStyle.SOLID);
+            bossBar = new BukkitBossBarFactory(Bukkit.getServer()).newBossBar().color(BossBarColor.GREEN).style(BossBarStyle.SOLID);
         }
 
         updatePacket();
@@ -186,23 +189,19 @@ public class WorldBlocksBreaking {
                     double blockProgress = registry.getBlockProgress().get(blockPosition);
                     double bossBarProgress = blockProgress / 100;
 
-                    Bukkit.getScheduler().runTaskLater(mainClass, () -> {
+                    if (blockProgress < 100 && blockProgress > -1) {
+                        bossBar.title("&a&lBlock Progress: &f&l" + Math.round(blockProgress) + "%");
+                        bossBar.addPlayer(player);
+                        bossBar.progress(bossBarProgress);
+                        continue;
+                    }
 
-                        if (blockProgress < 100 && blockProgress > -1) {
-                            bossBar.title("&a&lBlock Progress: &f&l" + Math.round(blockProgress) + "%");
-                            bossBar.addPlayer(player);
-                            bossBar.progress(bossBarProgress);
-
-                        } else {
-                            registry.getBlockProgress().remove(blockPosition);
-                            Bukkit.getPluginManager().callEvent(new WorldBlocksBreakEvent(block, player));
-                            bossBar.close();
-                            if (registry.getOldBlockProgress().containsKey(blockPosition)) {
-                                registry.getOldBlockProgress().remove(blockPosition);
-                            }
-
-                        }
-                    }, 10);
+                    registry.getBlockProgress().remove(blockPosition);
+                    Bukkit.getPluginManager().callEvent(new WorldBlocksBreakEvent(block, player));
+                    bossBar.close();
+                    if (registry.getOldBlockProgress().containsKey(blockPosition)) {
+                        registry.getOldBlockProgress().remove(blockPosition);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
