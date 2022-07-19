@@ -1,8 +1,7 @@
-package mines.packetnew.packets;
+package mines.blocks.nms.packets.packets;
 
 import net.minecraft.network.protocol.game.PacketPlayInBlockDig;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockBreak;
-import net.minecraft.network.protocol.game.PacketPlayOutBlockBreakAnimation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 

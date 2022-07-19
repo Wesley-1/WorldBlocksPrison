@@ -1,13 +1,11 @@
-package mines.packetnew.handler;
+package mines.blocks.nms.packets.handler;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
-import io.netty.channel.DefaultChannelPromise;
 import lombok.Getter;
-import mines.packetnew.packets.PacketEvent;
-import mines.packetnew.subscription.EventSubscriptions;
-import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
+import mines.blocks.nms.packets.packets.PacketEvent;
+import mines.blocks.nms.packets.subscription.EventSubscriptions;
 import org.bukkit.entity.Player;
 
 public class WorldChannelDuplexHandler extends ChannelDuplexHandler {

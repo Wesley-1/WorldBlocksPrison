@@ -1,29 +1,39 @@
-package mines.packetnew;
+package mines.blocks.nms;
 
 import me.lucko.helper.bossbar.BossBar;
 import me.lucko.helper.bossbar.BossBarColor;
 import me.lucko.helper.bossbar.BossBarStyle;
 import me.lucko.helper.bossbar.BukkitBossBarFactory;
-import mines.packetnew.events.WorldBlocksBreakEvent;
-import mines.packetnew.injector.WorldBlocksInjector;
-import mines.packetnew.packets.PacketPlayInBlockDigImpl;
-import mines.packetnew.packets.PacketPlayOutBlockBreakImpl;
-import mines.packetnew.registry.ProgressRegistry;
-import mines.packetnew.subscription.EventSubscription;
-import mines.packetnew.subscription.EventSubscriptions;
+import mines.blocks.block.BlockHandler;
+import mines.blocks.block.regeneration.BlockRegeneration;
+import mines.blocks.events.WorldBlocksBreakEvent;
+import mines.blocks.nms.packets.injector.WorldBlocksInjector;
+import mines.blocks.nms.packets.packets.type.PacketPlayInBlockDigImpl;
+import mines.blocks.nms.packets.packets.type.PacketPlayOutBlockBreakImpl;
+import mines.blocks.nms.packets.subscription.EventSubscription;
+import mines.blocks.nms.packets.subscription.EventSubscriptions;
+import mines.blocks.registry.BlockRegistry;
+import mines.blocks.registry.ProgressRegistry;
+import mines.blocks.registry.RegenRegistry;
+import mines.blocks.registry.RegionRegistry;
 import net.minecraft.core.BlockPosition;
-import net.minecraft.network.protocol.game.PacketPlayInBlockDig;
-import net.minecraft.network.protocol.game.PacketPlayOutBlockBreak;
-import net.minecraft.network.protocol.game.PacketPlayOutBlockBreakAnimation;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectList;
 import net.minecraft.world.level.World;
-import net.minecraft.world.level.block.state.IBlockData;
+import net.minecraft.world.level.block.BlockLadder;
+import net.minecraft.world.level.block.state.BlockBase;
+import net.minecraft.world.level.block.state.properties.IBlockState;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -35,44 +45,36 @@ import java.util.Random;
 public class WorldBlocksBreaking {
 
     private static Field blockPositionDigIn;
-    private static Field blockPositionBlockBreakAnim;
-    private static Field blockPositionBlockBreak;
     private static Field enumPlayerDigTypeInDig;
+    private static Field blockPositionBlockBreak;
     private static Field inBool;
-    private static Field dura;
-    private static Field prog;
-    private final ProgressRegistry registry;
+    private final ProgressRegistry progressRegistry;
+    private final RegenRegistry regenRegistry;
+    private final RegionRegistry regionRegistry;
+    private final BlockRegistry blockRegistry;
 
     static {
         try {
             blockPositionDigIn = PacketPlayInBlockDig.class.getDeclaredField("a");
             enumPlayerDigTypeInDig = PacketPlayInBlockDig.class.getDeclaredField("c");
-
-            blockPositionBlockBreak = PacketPlayOutBlockBreak.class.getDeclaredField("b");
             inBool = PacketPlayOutBlockBreak.class.getDeclaredField("e");
-
-            dura = PacketPlayOutBlockBreakAnimation.class.getDeclaredField("a");
-            prog = PacketPlayOutBlockBreakAnimation.class.getDeclaredField("c");
-            blockPositionBlockBreakAnim = PacketPlayOutBlockBreakAnimation.class.getDeclaredField("b");
+            blockPositionBlockBreak = PacketPlayOutBlockBreak.class.getDeclaredField("b");
 
             blockPositionDigIn.setAccessible(true);
             enumPlayerDigTypeInDig.setAccessible(true);
-
-            blockPositionBlockBreak.setAccessible(true);
             inBool.setAccessible(true);
-
-            dura.setAccessible(true);
-            prog.setAccessible(true);
-            blockPositionBlockBreakAnim.setAccessible(true);
-
+            blockPositionBlockBreak.setAccessible(true);
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
         }
     }
 
-    public WorldBlocksBreaking(ProgressRegistry registry) {
+    public WorldBlocksBreaking(ProgressRegistry registry, RegenRegistry regenRegistry, RegionRegistry regionRegistry, BlockRegistry blockRegistry) {
+        this.regenRegistry = regenRegistry;
+        this.regionRegistry = regionRegistry;
+        this.blockRegistry = blockRegistry;
         EventSubscriptions.instance.subscribe(this, getClass());
-        this.registry = registry;
+        this.progressRegistry = registry;
     }
 
     @EventSubscription
@@ -83,18 +85,15 @@ public class WorldBlocksBreaking {
         PacketPlayOutEntityEffect entityEffect = new PacketPlayOutEntityEffect(event.getPlayer().getEntityId(), new MobEffect(MobEffectList.fromId(PotionEffectType.SLOW_DIGGING.getId()), Integer.MAX_VALUE, 255, true, false));
         WorldBlocksInjector.sendPacket(event.getPlayer(), entityEffect);
 
-        if (registry.getBlocksBreaking().containsKey(blockPos)) {
-            registry.getBlocksBreaking().remove(blockPos);
-        }
+        progressRegistry.getBlocksBreaking().remove(blockPos);
 
         if (enumPlayerDigTypeInDig.get(packet) == PacketPlayInBlockDig.EnumPlayerDigType.a) {
             System.out.println(enumPlayerDigTypeInDig.get(packet));
-            System.out.println("WERE IN THE START BREAKING ENUM!");
-            registry.getBlocksBreaking().put(blockPos, true);
+            progressRegistry.getBlocksBreaking().put(blockPos, true);
+
         } else if (enumPlayerDigTypeInDig.get(packet) == PacketPlayInBlockDig.EnumPlayerDigType.c || enumPlayerDigTypeInDig.get(packet) == PacketPlayInBlockDig.EnumPlayerDigType.b) {
-            registry.getBlocksBreaking().remove(blockPos);
-            registry.copyOldData(blockPos);
-            System.out.println("NEW");
+            progressRegistry.getBlocksBreaking().remove(blockPos);
+            progressRegistry.copyOldData(blockPos);
         }
 
         // if isCustomBlock() && enum == c then return
@@ -112,23 +111,25 @@ public class WorldBlocksBreaking {
         }
 
          */
-        System.out.println("Testing blockbreak");
+
+
         inBool.set(packet, true);
     }
 
     public void updatePacket() {
 
         for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-            for (BlockPosition blockPosition : registry.getBlockProgress().keySet()) {
+            for (BlockPosition blockPosition : progressRegistry.getBlockProgress().keySet()) {
 
-                double progress = registry.getBlockProgress().get(blockPosition);
+                double progress = progressRegistry.getBlockProgress().get(blockPosition);
                 int progressInt = (int) progress;
 
-                if (!registry.getRandomIntegers().containsKey(blockPosition)) {
+                if (!progressRegistry.getRandomIntegers().containsKey(blockPosition)) {
                     Random random = new Random(System.currentTimeMillis());
-                    registry.getRandomIntegers().put(blockPosition, random.nextInt(1000));
+                    progressRegistry.getRandomIntegers().put(blockPosition, random.nextInt(1000));
                 }
-                PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(registry.getRandomIntegers().get(blockPosition), blockPosition, (progressInt / 10));
+
+                PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(progressRegistry.getRandomIntegers().get(blockPosition), blockPosition, (progressInt / 10));
                 WorldBlocksInjector.sendPacket(player, packet);
             }
         }
@@ -136,25 +137,42 @@ public class WorldBlocksBreaking {
 
     private BossBar bossBar = null;
 
-    public void progression(JavaPlugin mainClass) {
+    public void progression(JavaPlugin main) {
+
         if (bossBar == null) {
-            bossBar = new BukkitBossBarFactory(Bukkit.getServer()).newBossBar().color(BossBarColor.GREEN).style(BossBarStyle.SOLID);
+            bossBar = new BukkitBossBarFactory(Bukkit.getServer())
+                .newBossBar()
+                .color(BossBarColor.GREEN)
+                .style(BossBarStyle.SOLID);
         }
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (player == null) return;
+
             try {
                 Block block = player.getTargetBlockExact(5);
 
                 if (block == null) return;
 
-                double hardnessMultiplier = 1d / (300 / 100d);
+                if (!block.getType().equals(Material.NOTE_BLOCK)) return;
+
                 BlockPosition blockPosition = new BlockPosition(block.getX(), block.getY(), block.getZ());
 
-                if (registry.getBlockBreak(blockPosition)) {
+                BlockHandler.BlockModel model = BlockHandler.modelFromString(regionRegistry, blockRegistry, block);
+
+                double hardnessMultiplier;
+                double regenTime;
+
+                if (model == null) {
+                    hardnessMultiplier = 1d / (300 / 100d);
+                    regenTime = System.currentTimeMillis() + 10 * 1000;
+                } else {
+                    hardnessMultiplier = 1d / (model.getHardnessMulti() / 100d);
+                    regenTime = System.currentTimeMillis() + model.getRegenTime() * 1000;
+                }
+
+                if (progressRegistry.getBlockBreak(blockPosition)) {
                     EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
-                    World world = entityPlayer.getWorld();
-                    IBlockData blockData = world.getType(blockPosition);
 
                     Field currentDigTickField = entityPlayer.d.getClass().getDeclaredField("i");
                     Field lastDigTickField = entityPlayer.d.getClass().getDeclaredField("g");
@@ -171,21 +189,19 @@ public class WorldBlocksBreaking {
                     float newDamage = itemDamage * (float) (newDigTick + 1);
                     double doubleProgress = (newDamage * 100f) * hardnessMultiplier;
 
-                    if (registry.getBlockProgress().containsKey(blockPosition)) {
-                        registry.getBlockProgress().remove(blockPosition);
-                    }
+                    progressRegistry.getBlockProgress().remove(blockPosition);
 
                     double oldProgress = 0;
 
-                    if (registry.getOldBlockProgress().containsKey(blockPosition)) {
-                        oldProgress = registry.getOldBlockProgress().get(blockPosition);
+                    if (progressRegistry.getOldBlockProgress().containsKey(blockPosition)) {
+                        oldProgress = progressRegistry.getOldBlockProgress().get(blockPosition);
                     }
 
                     if (player.getGameMode() != GameMode.CREATIVE) {
-                        registry.getBlockProgress().put(blockPosition, doubleProgress + oldProgress);
+                        progressRegistry.getBlockProgress().put(blockPosition, doubleProgress + oldProgress);
                     }
 
-                    double blockProgress = registry.getBlockProgress().get(blockPosition);
+                    double blockProgress = progressRegistry.getBlockProgress().get(blockPosition);
                     double bossBarProgress = blockProgress / 100;
 
                     if (blockProgress < 100 && blockProgress > -1) {
@@ -195,11 +211,24 @@ public class WorldBlocksBreaking {
                         continue;
                     }
 
-                    PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(registry.getRandomIntegers().get(blockPosition), blockPosition, 0);
+
+                    PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(progressRegistry.getRandomIntegers().get(blockPosition), blockPosition, 0);
+
+                    Material material = Material.STONE;
+                    player.sendBlockChange(block.getLocation(), material.createBlockData());
+
                     WorldBlocksInjector.sendPacket(player, packet);
 
-                    registry.getBlockProgress().remove(blockPosition);
-                    registry.getOldBlockProgress().remove(blockPosition);
+                    progressRegistry.getBlockProgress().remove(blockPosition);
+                    progressRegistry.getOldBlockProgress().remove(blockPosition);
+
+                    new BlockRegeneration(
+                        regenRegistry,
+                        main,
+                        block.getLocation(),
+                        block,
+                        System.currentTimeMillis(),
+                        (long) regenTime, player);
 
                     Bukkit.getPluginManager().callEvent(new WorldBlocksBreakEvent(block, player));
                     bossBar.close();
@@ -212,3 +241,4 @@ public class WorldBlocksBreaking {
         updatePacket();
     }
 }
+

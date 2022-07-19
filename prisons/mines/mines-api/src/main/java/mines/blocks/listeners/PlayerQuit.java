@@ -1,6 +1,6 @@
-package mines.packetnew.listeners;
+package mines.blocks.listeners;
 
-import mines.packetnew.injector.WorldBlocksInjector;
+import mines.blocks.nms.packets.injector.WorldBlocksInjector;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;

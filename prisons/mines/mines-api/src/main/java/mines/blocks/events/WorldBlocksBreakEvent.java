@@ -1,4 +1,4 @@
-package mines.packetnew.events;
+package mines.blocks.events;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;

@@ -1,13 +1,9 @@
-package mines.packetnew.listeners;
+package mines.blocks.listeners;
 
-import mines.packetnew.injector.WorldBlocksInjector;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectList;
+import mines.blocks.nms.packets.injector.WorldBlocksInjector;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.potion.PotionEffectType;
 
 public class PlayerJoin implements Listener {
 

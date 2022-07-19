@@ -1,4 +1,4 @@
-package mines.packetnew.registry;
+package mines.blocks.registry;
 
 import net.minecraft.core.BlockPosition;
 

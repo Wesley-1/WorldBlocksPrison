@@ -1,10 +1,10 @@
-package mines.packetnew.injector;
+package mines.blocks.nms.packets.injector;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.DefaultChannelPromise;
-import mines.packetnew.handler.WorldChannelDuplexHandler;
-import mines.packetnew.subscription.EventSubscriptions;
+import mines.blocks.nms.packets.handler.WorldChannelDuplexHandler;
+import mines.blocks.nms.packets.subscription.EventSubscriptions;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 

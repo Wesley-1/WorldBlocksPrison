@@ -1,4 +1,4 @@
-package mines.packetnew.subscription;
+package mines.blocks.nms.packets.subscription;
 
 import java.lang.annotation.Annotation;
 import java.lang.ref.WeakReference;
