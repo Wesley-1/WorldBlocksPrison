@@ -31,7 +31,7 @@ public class BlockHandler {
             int customModelData = configSection.getInt(mainPath + "modelData");
             double hardnessMultiplier = configSection.getDouble(mainPath + "hardnessMultiplier");
             double regenTime = configSection.getDouble(mainPath + "regenTime");
-            boolean hasParticles = configSection.getBoolean(mainPath + "hasParticles");
+            boolean hasParticles = configSection.getBoolean(mainPath + "hasParticle");
             boolean hasEffect = configSection.getBoolean(mainPath + "hasEffect");
             boolean hasSound = configSection.getBoolean(mainPath + "hasSound");
 
@@ -43,8 +43,8 @@ public class BlockHandler {
                 .setRegenTime(regenTime);
 
             if (hasParticles) {
-                String particleType = configSection.getString(mainPath + "particles.type");
-                int amount = configSection.getInt(mainPath + "particles.amount");
+                String particleType = configSection.getString(mainPath + "effects.particles.type");
+                int amount = configSection.getInt(mainPath + "effects.particles.amount");
 
                 WorldBlocksParticle worldBlocksParticles = new WorldBlocksParticle(amount);
                 worldBlocksParticles.setType(Particle.valueOf(particleType));
@@ -56,9 +56,9 @@ public class BlockHandler {
             }
 
             if (hasEffect) {
-                String effectType = configSection.getString(mainPath + "effect.type");
-                int data = configSection.getInt(mainPath + "effect.data");
-                int radius = configSection.getInt(mainPath + "effect.radius");
+                String effectType = configSection.getString(mainPath + "effects.effect.type");
+                int data = configSection.getInt(mainPath + "effects.effect.data");
+                int radius = configSection.getInt(mainPath + "effects.effect.radius");
 
                 WorldBlocksEffect worldBlocksEffect = new WorldBlocksEffect(data, radius);
 
@@ -71,9 +71,9 @@ public class BlockHandler {
             }
 
             if (hasSound) {
-                String soundType = configSection.getString(mainPath + "sounds.type");
-                int pitch = configSection.getInt(mainPath + "sounds.pitch");
-                int volume = configSection.getInt(mainPath + "sounds.volume");
+                String soundType = configSection.getString(mainPath + "effects.sounds.type");
+                int pitch = configSection.getInt(mainPath + "effects.sounds.pitch");
+                int volume = configSection.getInt(mainPath + "effects.sounds.volume");
 
                 WorldBlocksSound worldBlocksSound = new WorldBlocksSound(volume, pitch);
 

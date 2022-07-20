@@ -2,8 +2,23 @@ Blocks:
   dragonStone:
     blockName: "DragonStone"
     regenTime: 10
-    hardnessMulti: 500
+    hardnessMultiplier: 500
     modelData: 0
+    hasParticle: true
+    hasEffect: true
+    hasSound: true
+    effects:
+      particles:
+        type: "DRAGON_BREATH"
+        amount: 3
+      effect:
+        type: "DRAGON_BREATH"
+        data: 1
+        radius: 10
+      sound:
+        type: "BLOCK_AMETHYST_BLOCK_BREAK"
+        pitch: 10
+        volume: 10
     drops:
       diamond:
         material: "DIAMOND"
