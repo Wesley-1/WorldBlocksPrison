@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import mines.Mines;
 import mines.blocks.block.regeneration.BlockRegeneration;
 import mines.blocks.events.WorldBlocksBreakEvent;
+import mines.blocks.nms.helper.BlockAnimHelper;
 import mines.blocks.nms.packets.injector.WorldBlocksInjector;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockChange;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityEquipment;
@@ -47,5 +48,7 @@ public class WorldBlocksBreak implements Listener {
         WorldBlocksInjector.sendPacket(player, packetPlayOutSpawnEntity);
         WorldBlocksInjector.sendPacket(player, packetPlayOutEntityEquipment);
         WorldBlocksInjector.sendPacket(player, packetPlayOutEntityMetadata);
+
+        new BlockAnimHelper(Mines.getPlugin(Mines.class)).fracture(block.getLocation(), 20);
     }
 }

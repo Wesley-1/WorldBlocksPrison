@@ -2,6 +2,7 @@ package mines;
 
 import lombok.Getter;
 import me.lucko.helper.Commands;
+import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.text3.Text;
 import mines.blocks.block.BlockHandler;
 import mines.blocks.listeners.PlayerJoin;
@@ -24,7 +25,7 @@ import org.codemc.worldguardwrapper.WorldGuardWrapper;
 import javax.swing.plaf.synth.Region;
 import java.util.function.Predicate;
 
-public class Mines extends JavaPlugin {
+public class Mines extends ExtendedJavaPlugin {
 
     /*
     TODO make a better way for the block breaking class to handle block breaking in large quantities.
@@ -34,13 +35,14 @@ public class Mines extends JavaPlugin {
     TODO finish the animation for ArmorStand (ignPurple job)
     TODO make the regeneration class into an event and just call the event.
     TODO make some commands, maybe add some more details to the regions.
+    TODO fix the update for blocks because it doesn't properly update them.
      */
 
     private WorldBlocksBreaking blockBreaking;
     private WorldBlocksInjector injector;
 
     @Override
-    public void onEnable() {
+    public void enable() {
         saveDefaultConfig();
         setupPackets();
 
@@ -57,7 +59,7 @@ public class Mines extends JavaPlugin {
     }
 
     @Override
-    public void onDisable() {
+    public void disable() {
 
     }
 

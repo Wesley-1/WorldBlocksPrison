@@ -9,5 +9,5 @@ dependencies {
     implementation(Dependencies.LUCKO_HELPER)
     implementation(Dependencies.LUCKO_SQL)
     compileOnly(Dependencies._SPIGOT)
-    compileOnly(Dependencies.WORLDGUARDWRAPPER)
+    implementation(Dependencies.WORLDGUARDWRAPPER)
 }

@@ -76,8 +76,8 @@ public class BlockHandler {
                 int volume = configSection.getInt(mainPath + "effects.sounds.volume");
 
                 WorldBlocksSound worldBlocksSound = new WorldBlocksSound(volume, pitch);
-
-                worldBlocksSound.setType(Sound.valueOf(soundType));
+                // TODO fix the sound.valueOf(soundType) issue
+                worldBlocksSound.setType(Sound.BLOCK_AMETHYST_BLOCK_BREAK);
 
                 WorldBlocksEffects soundEffect = new BukkitEffectFactory().newEffect()
                     .setEffectType(worldBlocksSound);

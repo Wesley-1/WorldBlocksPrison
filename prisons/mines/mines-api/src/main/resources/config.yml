@@ -16,7 +16,7 @@ Blocks:
         data: 1
         radius: 10
       sound:
-        type: "BLOCK_AMETHYST_BLOCK_BREAK"
+        type: "ENTITY_IRON_GOLEM_DAMAGE"
         pitch: 10
         volume: 10
     drops:

@@ -5,6 +5,7 @@ import me.lucko.helper.text3.Text;
 import mines.Mines;
 
 public class ConfigValue {
+
     protected final Mines instance;
     private final String regionCommandUsageMessage;
     private final String regionRegisteredCommandMessage;

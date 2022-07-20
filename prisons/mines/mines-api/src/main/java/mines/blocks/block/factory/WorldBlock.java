@@ -4,14 +4,15 @@ import mines.blocks.block.factory.interfaces.WorldBlocksBlock;
 import mines.blocks.block.factory.interfaces.WorldBlocksEffects;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class WorldBlock implements WorldBlocksBlock {
 
     private String name = "";
-    private List<WorldBlocksEffects> effectsList = Collections.emptyList();
-    private List<ItemStack> itemsList = Collections.emptyList();
+    private final List<WorldBlocksEffects> effectsList = new ArrayList<>();
+    private final List<ItemStack> itemsList = new ArrayList<>();
     private int modelData = 0;
     private double regenTime = 0.0;
     private double hardnessMultiplier = 0.0;
