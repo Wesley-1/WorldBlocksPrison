@@ -1,6 +1,8 @@
 package mines;
 
 import lombok.Getter;
+import me.lucko.helper.Commands;
+import me.lucko.helper.text3.Text;
 import mines.blocks.block.BlockHandler;
 import mines.blocks.listeners.PlayerJoin;
 import mines.blocks.listeners.PlayerQuit;
@@ -8,15 +10,19 @@ import mines.blocks.listeners.WorldBlocksBreak;
 import mines.blocks.nms.WorldBlocksBreaking;
 import mines.blocks.nms.packets.injector.WorldBlocksInjector;
 import mines.blocks.nms.packets.subscription.EventSubscriptions;
+import mines.blocks.regions.WorldBlocksMineRegion;
 import mines.blocks.registry.BlockRegistry;
 import mines.blocks.registry.ProgressRegistry;
 import mines.blocks.registry.RegenRegistry;
 import mines.blocks.registry.RegionRegistry;
+import mines.config.ConfigValue;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.codemc.worldguardwrapper.WorldGuardWrapper;
 
 import javax.swing.plaf.synth.Region;
+import java.util.function.Predicate;
 
 public class Mines extends JavaPlugin {
 
@@ -41,12 +47,13 @@ public class Mines extends JavaPlugin {
         BlockHandler blockHandler = new BlockHandler();
 
         registerEvents();
-
         blockHandler.init(getConfig());
+        registerCommands();
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
             blockBreaking.progression(this);
         }, 2, 2);
+
     }
 
     @Override
@@ -63,12 +70,35 @@ public class Mines extends JavaPlugin {
     public void registerEvents() {
         Bukkit.getPluginManager().registerEvents(new PlayerJoin(injector), this);
         Bukkit.getPluginManager().registerEvents(new PlayerQuit(injector), this);
-        Bukkit.getPluginManager().registerEvents(new WorldBlocksBreak(this), this);
+        Bukkit.getPluginManager().registerEvents(new WorldBlocksBreak(), this);
     }
 
     public void registerCommands() {
-        /*
-        TODO region command
-         */
+        Commands.create()
+            .assertPermission("worldblocks.prisons.regions.creation")
+            .assertPlayer()
+            .assertUsage(ConfigValue.get().getRegionCommandUsageMessage())
+            .handler(handler -> {
+
+                if (handler.arg(0).parseOrFail(String.class).equals("register")) {
+                    String regionName = handler.arg(1).parseOrFail(String.class);
+                    String blockName = handler.arg(2).parseOrFail(String.class);
+
+                    if (!BlockRegistry.get().getBlocks().containsKey(blockName)) {
+                        handler.sender().sendMessage(ConfigValue.get().getBlockNotFoundMessage());
+                        return;
+                    }
+
+                    if (WorldGuardWrapper.getInstance().getRegions(handler.sender().getWorld()).containsKey(regionName)) {
+                        handler.sender().sendMessage(ConfigValue.get().getWorldGuardRegionNotFoundMessage());
+                        return;
+                    }
+
+                    WorldBlocksMineRegion region = new WorldBlocksMineRegion(handler.sender().getWorld(), regionName, blockName);
+                    region.newInstance();
+
+                    handler.sender().sendMessage(ConfigValue.get().getRegionRegisteredCommandMessage());
+                }
+            }).register("region");
     }
 }

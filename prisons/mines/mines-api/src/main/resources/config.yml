@@ -34,3 +34,9 @@ Blocks:
         data: 0
         lore:
           - "&aThis is a dragon stone ruby"
+
+Messages:
+  regionCommandUsage: "&c<region> <block>"
+  regionRegisteredCommand: "&bRegion registered"
+  blockNotFound: "&cThat block name doesn't seem to be correct, try again!"
+  worldGuardRegionNotFound: "&cWorldGuard region with this name doesn't seem to exist, try again!"

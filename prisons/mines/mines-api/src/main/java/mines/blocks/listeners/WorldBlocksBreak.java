@@ -26,11 +26,6 @@ import java.util.List;
 
 public class WorldBlocksBreak implements Listener {
 
-    private final Mines main;
-    public WorldBlocksBreak(Mines main) {
-        this.main = main;
-    }
-
     @EventHandler
     public void onBlockBreak(WorldBlocksBreakEvent event) {
         Player player = event.getPlayer();
