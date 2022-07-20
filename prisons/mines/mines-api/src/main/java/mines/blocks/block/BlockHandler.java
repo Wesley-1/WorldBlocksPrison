@@ -1,39 +1,98 @@
 package mines.blocks.block;
 
-import lombok.Getter;
 import me.lucko.helper.item.ItemStackBuilder;
+import mines.blocks.block.factory.WorldBlockFactory;
+import mines.blocks.block.factory.effects.BukkitEffectFactory;
+import mines.blocks.block.factory.effects.types.WorldBlocksEffect;
+import mines.blocks.block.factory.effects.types.WorldBlocksParticle;
+import mines.blocks.block.factory.effects.types.WorldBlocksSound;
+import mines.blocks.block.factory.interfaces.WorldBlocksBlock;
+import mines.blocks.block.factory.interfaces.WorldBlocksEffects;
 import mines.blocks.regions.WorldBlocksMineRegion;
 import mines.blocks.registry.BlockRegistry;
 import mines.blocks.registry.RegionRegistry;
-import net.minecraft.core.BlockPosition;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
+import org.codemc.worldguardwrapper.region.IWrappedRegion;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 
 public class BlockHandler {
 
-    public void setupConfiguration(BlockRegistry registry, YamlConfiguration section) {
-        for (String string : section.getConfigurationSection("Blocks").getKeys(false)) {
+    public void init(FileConfiguration configSection) {
+        for (String blockKey : configSection.getConfigurationSection("Blocks").getKeys(false)) {
+            String mainPath = "Blocks." + blockKey + ".";
 
-            String blockName = section.getString("Blocks." + string + ".blockName");
-            double regenTime = section.getDouble("Blocks." + string + ".regenTime");
-            double hardnessMulti = section.getDouble("Blocks." + string +".hardnessMulti");
-            int customModelData = section.getInt("Blocks." + string + ".modelData");
+            String blockName = configSection.getString(mainPath + "blockName");
+            int customModelData = configSection.getInt(mainPath + "modelData");
+            double hardnessMultiplier = configSection.getDouble(mainPath + "hardnessMultiplier");
+            double regenTime = configSection.getDouble(mainPath + "regenTime");
+            boolean hasParticles = configSection.getBoolean(mainPath + "hasParticles");
+            boolean hasEffect = configSection.getBoolean(mainPath + "hasEffect");
+            boolean hasSound = configSection.getBoolean(mainPath + "hasSound");
 
-            BlockModel model = new BlockModel(blockName, regenTime, hardnessMulti, customModelData);
-            for (String dropString : section.getConfigurationSection("Blocks." + string + ".drops").getKeys(false)) {
-                String material = section.getString("Blocks." + string + ".drops." + dropString + ".material");
-                String dropName = section.getString("Blocks." + string + ".drops." + dropString + ".itemName");
-                List<String> lore = section.getStringList("Blocks." + string + ".drops." + dropString + ".lore");
-                int data = section.getInt("Blocks." + string + ".drops." + dropString + ".data");
-                boolean glowing = section.getBoolean("Blocks." + string + ".drops." + dropString + ".glowing");
+            WorldBlocksBlock worldBlock = new WorldBlockFactory()
+                .newBlock()
+                .setName(blockName)
+                .setModelData(customModelData)
+                .setHardnessMultiplier(hardnessMultiplier)
+                .setRegenTime(regenTime);
+
+            if (hasParticles) {
+                String particleType = configSection.getString(mainPath + "particles.type");
+                int amount = configSection.getInt(mainPath + "particles.amount");
+
+                WorldBlocksParticle worldBlocksParticles = new WorldBlocksParticle(amount);
+                worldBlocksParticles.setType(Particle.valueOf(particleType));
+
+                WorldBlocksEffects particleEffect = new BukkitEffectFactory().newEffect()
+                    .setEffectType(worldBlocksParticles);
+
+                worldBlock.addEffect(particleEffect);
+            }
+
+            if (hasEffect) {
+                String effectType = configSection.getString(mainPath + "effect.type");
+                int data = configSection.getInt(mainPath + "effect.data");
+                int radius = configSection.getInt(mainPath + "effect.radius");
+
+                WorldBlocksEffect worldBlocksEffect = new WorldBlocksEffect(data, radius);
+
+                worldBlocksEffect.setType(Effect.valueOf(effectType));
+
+                WorldBlocksEffects effect = new BukkitEffectFactory().newEffect()
+                    .setEffectType(worldBlocksEffect);
+
+                worldBlock.addEffect(effect);
+            }
+
+            if (hasSound) {
+                String soundType = configSection.getString(mainPath + "sounds.type");
+                int pitch = configSection.getInt(mainPath + "sounds.pitch");
+                int volume = configSection.getInt(mainPath + "sounds.volume");
+
+                WorldBlocksSound worldBlocksSound = new WorldBlocksSound(volume, pitch);
+
+                worldBlocksSound.setType(Sound.valueOf(soundType));
+
+                WorldBlocksEffects soundEffect = new BukkitEffectFactory().newEffect()
+                    .setEffectType(worldBlocksSound);
+
+                worldBlock.addEffect(soundEffect);
+            }
+
+            for (String dropKey : configSection.getConfigurationSection("Blocks." + blockKey + ".drops").getKeys(false)) {
+                String dropPath = mainPath + "drops." + dropKey + ".";
+
+                String material = configSection.getString(dropPath + "material");
+                String dropName = configSection.getString(dropPath + "itemName");
+                List<String> lore = configSection.getStringList(dropPath + "lore");
+                int data = configSection.getInt(dropPath + "data");
+                boolean glowing = configSection.getBoolean(dropPath + "glowing");
 
                 if (material == null || dropName == null) return;
 
@@ -44,48 +103,24 @@ public class BlockHandler {
                     builder.flag(ItemFlag.HIDE_ENCHANTS);
                 }
 
-                model.addCustomDrop(builder.build());
-
+                worldBlock.addDrop(builder.build());
             }
 
             if (blockName == null) return;
+            if (worldBlock == null) return;
 
-            registry.getBlocks().put(blockName, model);
+            BlockRegistry.get().getBlocks().put(blockName, worldBlock);
         }
     }
 
-    public static BlockModel modelFromString(RegionRegistry regionRegistry, BlockRegistry blockRegistry, Block block) {
-        for (WorldBlocksMineRegion.Instance region : regionRegistry.getRegions().values()) {
-            if (region.getWgRegion().isPresent()) {
-                if (region.getWgRegion().get().contains(block.getLocation())) {
-                    return blockRegistry.getBlocks().get(region.getBlock());
-                }
+    public static WorldBlocksBlock getBlock(Location location) {
+        WorldBlocksMineRegion.Instance instance = RegionRegistry.get().getInstance(location);
+
+        for (String blockKey : BlockRegistry.get().getBlocks().keySet()) {
+            if (Objects.equals(instance.getBlock(), blockKey)) {
+                return BlockRegistry.get().getBlocks().get(instance.getBlock());
             }
         }
         return null;
-    }
-
-    @Getter
-    public final class BlockModel {
-        private final String blockName;
-        private final double regenTime;
-        private final double hardnessMulti;
-        private final int customModelData;
-        private Set<ItemStack> customDrops;
-
-        public BlockModel(String blockName, double regenTime, double hardnessMulti, int customModelData) {
-            this.blockName = blockName;
-            this.regenTime = regenTime;
-            this.hardnessMulti = hardnessMulti;
-            this.customModelData = customModelData;
-        }
-
-        public void addCustomDrop(ItemStack itemStack) {
-            this.customDrops.add(itemStack);
-        }
-
-        public Set<ItemStack> getCustomDrop() {
-            return this.customDrops;
-        }
     }
 }

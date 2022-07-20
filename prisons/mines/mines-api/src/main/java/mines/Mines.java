@@ -1,30 +1,39 @@
 package mines;
 
 import lombok.Getter;
-import mines.packetnew.WorldBlocksBreaking;
-import mines.packetnew.injector.WorldBlocksInjector;
-import mines.packetnew.listeners.PlayerJoin;
-import mines.packetnew.listeners.PlayerQuit;
-import mines.packetnew.listeners.WorldBlocksBreak;
-import mines.packetnew.registry.ProgressRegistry;
-import mines.packetnew.subscription.EventSubscriptions;
+import mines.blocks.block.BlockHandler;
+import mines.blocks.listeners.PlayerJoin;
+import mines.blocks.listeners.PlayerQuit;
+import mines.blocks.listeners.WorldBlocksBreak;
+import mines.blocks.nms.WorldBlocksBreaking;
+import mines.blocks.nms.packets.injector.WorldBlocksInjector;
+import mines.blocks.nms.packets.subscription.EventSubscriptions;
+import mines.blocks.registry.BlockRegistry;
+import mines.blocks.registry.ProgressRegistry;
+import mines.blocks.registry.RegenRegistry;
+import mines.blocks.registry.RegionRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import javax.swing.plaf.synth.Region;
 
 public class Mines extends JavaPlugin {
 
     private WorldBlocksInjector injector;
     @Getter private WorldBlocksBreaking blockBreaking;
     private EventSubscriptions subscriptions;
-    private ProgressRegistry registry;
+    private BlockHandler blockHandler;
+
 
     @Override
     public void onEnable() {
-        this.registry = new ProgressRegistry();
+        saveDefaultConfig();
         this.subscriptions = new EventSubscriptions(this);
-        this.blockBreaking = new WorldBlocksBreaking(registry);
+        this.blockBreaking = new WorldBlocksBreaking();
         this.injector = new WorldBlocksInjector();
+        this.blockHandler = new BlockHandler();
 
+        this.blockHandler.init(getConfig());
         System.out.println("Starting register events!");
         Bukkit.getPluginManager().registerEvents(new PlayerJoin(injector), this);
         Bukkit.getPluginManager().registerEvents(new PlayerQuit(injector), this);

@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RegenRegistry {
     private final ConcurrentHashMap<Location, org.bukkit.block.Block> regeneratingBlocks;
+    public static RegenRegistry instance;
 
     public RegenRegistry() {
         this.regeneratingBlocks = new ConcurrentHashMap<>();
@@ -15,5 +16,12 @@ public class RegenRegistry {
 
     public ConcurrentHashMap<Location, org.bukkit.block.Block> getRegeneratingBlocks() {
         return regeneratingBlocks;
+    }
+
+    public static RegenRegistry get() {
+        if (RegenRegistry.instance == null) {
+            RegenRegistry.instance = new RegenRegistry();
+        }
+        return RegenRegistry.instance;
     }
 }

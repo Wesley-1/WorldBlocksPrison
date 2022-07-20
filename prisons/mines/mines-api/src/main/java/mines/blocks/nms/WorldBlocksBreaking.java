@@ -5,6 +5,7 @@ import me.lucko.helper.bossbar.BossBarColor;
 import me.lucko.helper.bossbar.BossBarStyle;
 import me.lucko.helper.bossbar.BukkitBossBarFactory;
 import mines.blocks.block.BlockHandler;
+import mines.blocks.block.factory.interfaces.WorldBlocksBlock;
 import mines.blocks.block.regeneration.BlockRegeneration;
 import mines.blocks.events.WorldBlocksBreakEvent;
 import mines.blocks.nms.packets.injector.WorldBlocksInjector;
@@ -21,19 +22,10 @@ import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectList;
-import net.minecraft.world.level.World;
-import net.minecraft.world.level.block.BlockLadder;
-import net.minecraft.world.level.block.state.BlockBase;
-import net.minecraft.world.level.block.state.properties.IBlockState;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_17_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -48,10 +40,6 @@ public class WorldBlocksBreaking {
     private static Field enumPlayerDigTypeInDig;
     private static Field blockPositionBlockBreak;
     private static Field inBool;
-    private final ProgressRegistry progressRegistry;
-    private final RegenRegistry regenRegistry;
-    private final RegionRegistry regionRegistry;
-    private final BlockRegistry blockRegistry;
 
     static {
         try {
@@ -69,12 +57,8 @@ public class WorldBlocksBreaking {
         }
     }
 
-    public WorldBlocksBreaking(ProgressRegistry registry, RegenRegistry regenRegistry, RegionRegistry regionRegistry, BlockRegistry blockRegistry) {
-        this.regenRegistry = regenRegistry;
-        this.regionRegistry = regionRegistry;
-        this.blockRegistry = blockRegistry;
+    public WorldBlocksBreaking() {
         EventSubscriptions.instance.subscribe(this, getClass());
-        this.progressRegistry = registry;
     }
 
     @EventSubscription
@@ -85,15 +69,15 @@ public class WorldBlocksBreaking {
         PacketPlayOutEntityEffect entityEffect = new PacketPlayOutEntityEffect(event.getPlayer().getEntityId(), new MobEffect(MobEffectList.fromId(PotionEffectType.SLOW_DIGGING.getId()), Integer.MAX_VALUE, 255, true, false));
         WorldBlocksInjector.sendPacket(event.getPlayer(), entityEffect);
 
-        progressRegistry.getBlocksBreaking().remove(blockPos);
+        ProgressRegistry.get().getBlocksBreaking().remove(blockPos);
 
         if (enumPlayerDigTypeInDig.get(packet) == PacketPlayInBlockDig.EnumPlayerDigType.a) {
             System.out.println(enumPlayerDigTypeInDig.get(packet));
-            progressRegistry.getBlocksBreaking().put(blockPos, true);
+            ProgressRegistry.get().getBlocksBreaking().put(blockPos, true);
 
         } else if (enumPlayerDigTypeInDig.get(packet) == PacketPlayInBlockDig.EnumPlayerDigType.c || enumPlayerDigTypeInDig.get(packet) == PacketPlayInBlockDig.EnumPlayerDigType.b) {
-            progressRegistry.getBlocksBreaking().remove(blockPos);
-            progressRegistry.copyOldData(blockPos);
+            ProgressRegistry.get().getBlocksBreaking().remove(blockPos);
+            ProgressRegistry.get().copyOldData(blockPos);
         }
 
         // if isCustomBlock() && enum == c then return
@@ -119,17 +103,17 @@ public class WorldBlocksBreaking {
     public void updatePacket() {
 
         for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-            for (BlockPosition blockPosition : progressRegistry.getBlockProgress().keySet()) {
+            for (BlockPosition blockPosition : ProgressRegistry.get().getBlockProgress().keySet()) {
 
-                double progress = progressRegistry.getBlockProgress().get(blockPosition);
+                double progress = ProgressRegistry.get().getBlockProgress().get(blockPosition);
                 int progressInt = (int) progress;
 
-                if (!progressRegistry.getRandomIntegers().containsKey(blockPosition)) {
+                if (!ProgressRegistry.get().getRandomIntegers().containsKey(blockPosition)) {
                     Random random = new Random(System.currentTimeMillis());
-                    progressRegistry.getRandomIntegers().put(blockPosition, random.nextInt(1000));
+                    ProgressRegistry.get().getRandomIntegers().put(blockPosition, random.nextInt(1000));
                 }
 
-                PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(progressRegistry.getRandomIntegers().get(blockPosition), blockPosition, (progressInt / 10));
+                PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(ProgressRegistry.get().getRandomIntegers().get(blockPosition), blockPosition, (progressInt / 10));
                 WorldBlocksInjector.sendPacket(player, packet);
             }
         }
@@ -158,20 +142,20 @@ public class WorldBlocksBreaking {
 
                 BlockPosition blockPosition = new BlockPosition(block.getX(), block.getY(), block.getZ());
 
-                BlockHandler.BlockModel model = BlockHandler.modelFromString(regionRegistry, blockRegistry, block);
+                WorldBlocksBlock worldBlocksBlock = BlockHandler.getBlock(player.getLocation());
 
                 double hardnessMultiplier;
                 double regenTime;
 
-                if (model == null) {
+                if (worldBlocksBlock == null) {
                     hardnessMultiplier = 1d / (300 / 100d);
                     regenTime = System.currentTimeMillis() + 10 * 1000;
                 } else {
-                    hardnessMultiplier = 1d / (model.getHardnessMulti() / 100d);
-                    regenTime = System.currentTimeMillis() + model.getRegenTime() * 1000;
+                    hardnessMultiplier = 1d / (worldBlocksBlock.getHardnessMultiplier() / 100d);
+                    regenTime = System.currentTimeMillis() + worldBlocksBlock.getRegenTime() * 1000;
                 }
 
-                if (progressRegistry.getBlockBreak(blockPosition)) {
+                if (ProgressRegistry.get().getBlockBreak(blockPosition)) {
                     EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
 
                     Field currentDigTickField = entityPlayer.d.getClass().getDeclaredField("i");
@@ -189,19 +173,19 @@ public class WorldBlocksBreaking {
                     float newDamage = itemDamage * (float) (newDigTick + 1);
                     double doubleProgress = (newDamage * 100f) * hardnessMultiplier;
 
-                    progressRegistry.getBlockProgress().remove(blockPosition);
+                    ProgressRegistry.get().getBlockProgress().remove(blockPosition);
 
                     double oldProgress = 0;
 
-                    if (progressRegistry.getOldBlockProgress().containsKey(blockPosition)) {
-                        oldProgress = progressRegistry.getOldBlockProgress().get(blockPosition);
+                    if (ProgressRegistry.get().getOldBlockProgress().containsKey(blockPosition)) {
+                        oldProgress = ProgressRegistry.get().getOldBlockProgress().get(blockPosition);
                     }
 
                     if (player.getGameMode() != GameMode.CREATIVE) {
-                        progressRegistry.getBlockProgress().put(blockPosition, doubleProgress + oldProgress);
+                        ProgressRegistry.get().getBlockProgress().put(blockPosition, doubleProgress + oldProgress);
                     }
 
-                    double blockProgress = progressRegistry.getBlockProgress().get(blockPosition);
+                    double blockProgress = ProgressRegistry.get().getBlockProgress().get(blockPosition);
                     double bossBarProgress = blockProgress / 100;
 
                     if (blockProgress < 100 && blockProgress > -1) {
@@ -212,23 +196,18 @@ public class WorldBlocksBreaking {
                     }
 
 
-                    PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(progressRegistry.getRandomIntegers().get(blockPosition), blockPosition, 0);
+                    PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(
+                        ProgressRegistry.get().getRandomIntegers().get(blockPosition), blockPosition, 0);
 
                     Material material = Material.STONE;
                     player.sendBlockChange(block.getLocation(), material.createBlockData());
 
                     WorldBlocksInjector.sendPacket(player, packet);
 
-                    progressRegistry.getBlockProgress().remove(blockPosition);
-                    progressRegistry.getOldBlockProgress().remove(blockPosition);
+                    ProgressRegistry.get().getBlockProgress().remove(blockPosition);
+                    ProgressRegistry.get().getOldBlockProgress().remove(blockPosition);
 
-                    new BlockRegeneration(
-                        regenRegistry,
-                        main,
-                        block.getLocation(),
-                        block,
-                        System.currentTimeMillis(),
-                        (long) regenTime, player);
+                    new BlockRegeneration(main, player, block.getLocation(), block, (long) regenTime);
 
                     Bukkit.getPluginManager().callEvent(new WorldBlocksBreakEvent(block, player));
                     bossBar.close();

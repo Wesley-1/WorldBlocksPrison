@@ -1,5 +1,7 @@
 package mines.blocks.nms.packets.packets;
 
+import mines.blocks.nms.packets.packets.type.PacketPlayInBlockDigImpl;
+import mines.blocks.nms.packets.packets.type.PacketPlayOutBlockBreakImpl;
 import net.minecraft.network.protocol.game.PacketPlayInBlockDig;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockBreak;
 import org.bukkit.entity.Player;

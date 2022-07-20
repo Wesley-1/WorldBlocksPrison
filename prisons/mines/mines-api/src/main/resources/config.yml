@@ -1,0 +1,21 @@
+Blocks:
+  dragonStone:
+    blockName: "DragonStone"
+    regenTime: 10
+    hardnessMulti: 500
+    modelData: 0
+    drops:
+      diamond:
+        material: "DIAMOND"
+        name: "&cDragonStoneDiamond"
+        glowing: true
+        data: 0
+        lore:
+          - "&aThis is a dragon stone diamond."
+      ruby:
+        material: "REDSTONE_BLOCK"
+        name: "&cDragonStoneRuby"
+        glowing: false
+        data: 0
+        lore:
+          - "&aThis is a dragon stone ruby"

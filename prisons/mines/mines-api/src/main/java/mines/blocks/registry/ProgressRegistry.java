@@ -10,6 +10,7 @@ public class ProgressRegistry {
     private final ConcurrentHashMap<BlockPosition, Boolean> blocksBreaking;
     private final ConcurrentHashMap<BlockPosition, Double> blockProgress;
     private final ConcurrentHashMap<BlockPosition, Double> oldBlockProgress;
+    public static ProgressRegistry instance;
 
     public ProgressRegistry() {
         this.randomIntegers = new ConcurrentHashMap<>();
@@ -50,4 +51,10 @@ public class ProgressRegistry {
         return randomIntegers;
     }
 
+    public static ProgressRegistry get() {
+        if (ProgressRegistry.instance == null) {
+            ProgressRegistry.instance = new ProgressRegistry();
+        }
+        return ProgressRegistry.instance;
+    }
 }

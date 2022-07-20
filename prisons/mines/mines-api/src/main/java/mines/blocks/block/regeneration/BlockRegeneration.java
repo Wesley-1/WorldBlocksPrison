@@ -17,30 +17,29 @@ public class BlockRegeneration {
     private final JavaPlugin instance;
     private final Location blockPosition;
     private final Block block;
-    private final long start;
     private final long end;
     private final Player player;
 
-    public BlockRegeneration(RegenRegistry registry, JavaPlugin instance, Location blockPosition, Block block, long start, long end, Player player) {
+    public BlockRegeneration(JavaPlugin instance, Player player, Location blockPosition, Block block, long end) {
         this.instance = instance;
         this.blockPosition = blockPosition;
         this.block = block;
-        this.start = start;
         this.end = end;
         this.player = player;
-        makeRegen(registry);
+        makeRegen();
     }
 
-    public void makeRegen(RegenRegistry registry) {
+    public void makeRegen() {
+        RegenRegistry.get().getRegeneratingBlocks().put(this.blockPosition, this.block);
         new BukkitRunnable() {
 
             @Override
             public void run() {
-                if (!registry.getRegeneratingBlocks().containsKey(blockPosition)) return;
+                if (!RegenRegistry.get().getRegeneratingBlocks().containsKey(blockPosition)) return;
                 if (!(System.currentTimeMillis() >= end)) return;
 
                 player.sendBlockChange(blockPosition, block.getBlockData());
-                registry.getRegeneratingBlocks().remove(blockPosition);
+                RegenRegistry.get().getRegeneratingBlocks().remove(blockPosition);
             }
 
         }.runTask(this.instance);
