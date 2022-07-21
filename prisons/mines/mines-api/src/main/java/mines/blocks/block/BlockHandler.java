@@ -42,6 +42,10 @@ public class BlockHandler {
                 .setHardnessMultiplier(hardnessMultiplier)
                 .setRegenTime(regenTime);
 
+            System.out.println(worldBlock.getName());
+            System.out.println(worldBlock.getModelData());
+            System.out.println(worldBlock.getHardnessMultiplier());
+
             if (hasParticles) {
                 String particleType = configSection.getString(mainPath + "effects.particles.type");
                 int amount = configSection.getInt(mainPath + "effects.particles.amount");
@@ -103,11 +107,9 @@ public class BlockHandler {
                     builder.flag(ItemFlag.HIDE_ENCHANTS);
                 }
 
+                System.out.println("Drops");
                 worldBlock.addDrop(builder.build());
             }
-
-            if (blockName == null) return;
-            if (worldBlock == null) return;
 
             BlockRegistry.get().getBlocks().put(blockName, worldBlock);
         }

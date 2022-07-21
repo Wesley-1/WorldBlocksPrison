@@ -30,6 +30,8 @@ import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
+import org.codemc.worldguardwrapper.WorldGuardWrapper;
+import org.codemc.worldguardwrapper.region.IWrappedRegion;
 
 import java.lang.reflect.Field;
 import java.util.Random;
@@ -142,6 +144,7 @@ public class WorldBlocksBreaking {
 
                 BlockPosition blockPosition = new BlockPosition(block.getX(), block.getY(), block.getZ());
 
+                if (BlockHandler.getBlock(player.getLocation()) == null) return;
                 WorldBlocksBlock worldBlocksBlock = BlockHandler.getBlock(player.getLocation());
 
                 double hardnessMultiplier;
@@ -150,9 +153,11 @@ public class WorldBlocksBreaking {
                 if (worldBlocksBlock == null) {
                     hardnessMultiplier = 1d / (300 / 100d);
                     regenTime = System.currentTimeMillis() + 10 * 1000;
+                    System.out.println("We null bro!");
                 } else {
                     hardnessMultiplier = 1d / (worldBlocksBlock.getHardnessMultiplier() / 100d);
                     regenTime = System.currentTimeMillis() + worldBlocksBlock.getRegenTime() * 1000;
+                    System.out.println("We isnt da big null");
                 }
 
                 if (ProgressRegistry.get().getBlockBreak(blockPosition)) {

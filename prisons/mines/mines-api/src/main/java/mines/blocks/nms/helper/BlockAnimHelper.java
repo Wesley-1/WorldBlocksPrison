@@ -10,6 +10,7 @@ import mines.blocks.block.factory.interfaces.WorldBlocksBlock;
 import mines.blocks.block.regeneration.BlockRegeneration;
 import mines.blocks.events.WorldBlocksBreakEvent;
 import mines.blocks.nms.packets.injector.WorldBlocksInjector;
+import mines.blocks.registry.BlockRegistry;
 import mines.blocks.registry.ProgressRegistry;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.EnumDirection;
@@ -27,9 +28,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class BlockAnimHelper {
 
@@ -43,6 +42,10 @@ public class BlockAnimHelper {
         for (Player player: Bukkit.getOnlinePlayers()) {
             for (Block block : getNearbyBlocks(loc, radius)) {
                 if (!(block.getType() == Material.NOTE_BLOCK)) return;
+                BlockPosition blockPos = ((CraftBlock) block).getPosition();
+                ProgressRegistry.get().getBlocksBreaking().put(blockPos, true);
+                ProgressRegistry.get().copyOldData(blockPos);
+
                 // TODO I need to make it so it does some damage to the blocks around the player, this is an enchant on cosmic
             }
         }

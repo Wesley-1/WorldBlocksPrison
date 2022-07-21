@@ -1,12 +1,12 @@
 Blocks:
-  dragonStone:
-    blockName: "DragonStone"
+  degenStone:
+    blockName: "DegenStone"
     regenTime: 10
-    hardnessMultiplier: 500
+    hardnessMultiplier: 5000
     modelData: 0
-    hasParticle: true
-    hasEffect: true
-    hasSound: true
+    hasParticle: false
+    hasEffect: false
+    hasSound: false
     effects:
       particles:
         type: "DRAGON_BREATH"
@@ -22,14 +22,49 @@ Blocks:
     drops:
       diamond:
         material: "DIAMOND"
-        name: "&cDragonStoneDiamond"
+        itemName: "&cDragonStoneDiamond"
         glowing: true
         data: 0
         lore:
           - "&aThis is a dragon stone diamond."
       ruby:
         material: "REDSTONE_BLOCK"
-        name: "&cDragonStoneRuby"
+        itemName: "&cDragonStoneRuby"
+        glowing: false
+        data: 0
+        lore:
+          - "&aThis is a dragon stone ruby"
+  dragonStone:
+    blockName: "DragonStone"
+    regenTime: 10
+    hardnessMultiplier: 500
+    modelData: 0
+    hasParticle: false
+    hasEffect: false
+    hasSound: false
+    effects:
+      particles:
+        type: "DRAGON_BREATH"
+        amount: 3
+      effect:
+        type: "DRAGON_BREATH"
+        data: 1
+        radius: 10
+      sound:
+        type: "ENTITY_IRON_GOLEM_DAMAGE"
+        pitch: 10
+        volume: 10
+    drops:
+      diamond:
+        material: "DIAMOND"
+        itemName: "&cDragonStoneDiamond"
+        glowing: true
+        data: 0
+        lore:
+          - "&aThis is a dragon stone diamond."
+      ruby:
+        material: "REDSTONE_BLOCK"
+        itemName: "&cDragonStoneRuby"
         glowing: false
         data: 0
         lore:

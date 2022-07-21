@@ -50,6 +50,7 @@ public class Mines extends ExtendedJavaPlugin {
 
         registerEvents();
         blockHandler.init(getConfig());
+
         registerCommands();
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
@@ -87,20 +88,21 @@ public class Mines extends ExtendedJavaPlugin {
                     String blockName = handler.arg(2).parseOrFail(String.class);
 
                     if (!BlockRegistry.get().getBlocks().containsKey(blockName)) {
+                        System.out.println(BlockRegistry.get().getBlocks().keySet());
                         handler.sender().sendMessage(ConfigValue.get().getBlockNotFoundMessage());
                         return;
                     }
 
-                    if (WorldGuardWrapper.getInstance().getRegions(handler.sender().getWorld()).containsKey(regionName)) {
+                    if (!WorldGuardWrapper.getInstance().getRegions(handler.sender().getWorld()).containsKey(regionName)) {
                         handler.sender().sendMessage(ConfigValue.get().getWorldGuardRegionNotFoundMessage());
                         return;
                     }
 
                     WorldBlocksMineRegion region = new WorldBlocksMineRegion(handler.sender().getWorld(), regionName, blockName);
-                    region.newInstance();
+                    RegionRegistry.get().getRegions().put(regionName, region.newInstance());
 
                     handler.sender().sendMessage(ConfigValue.get().getRegionRegisteredCommandMessage());
                 }
-            }).register("region");
+            }).register("wbregion");
     }
 }

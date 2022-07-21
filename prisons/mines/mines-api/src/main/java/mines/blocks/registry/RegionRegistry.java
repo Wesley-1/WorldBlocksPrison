@@ -21,11 +21,12 @@ public class RegionRegistry {
     }
 
     public WorldBlocksMineRegion.Instance getInstance(Location location) {
-        for (IWrappedRegion region : WorldGuardWrapper.getInstance().getRegions(location.getWorld()).values()) {
+        for (IWrappedRegion region : WorldGuardWrapper.getInstance().getRegions(location)) {
             if (getRegions().containsKey(region.getId())) {
                 return getRegions().get(region.getId());
             }
         }
+
         return null;
     }
 
