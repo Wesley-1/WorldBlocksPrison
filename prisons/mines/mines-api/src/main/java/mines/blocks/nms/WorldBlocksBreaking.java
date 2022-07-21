@@ -209,6 +209,7 @@ public class WorldBlocksBreaking {
 
                     WorldBlocksInjector.sendPacket(player, packet);
 
+                    ProgressRegistry.get().getBlocksBreaking().remove(blockPosition);
                     ProgressRegistry.get().getBlockProgress().remove(blockPosition);
                     ProgressRegistry.get().getOldBlockProgress().remove(blockPosition);
 
