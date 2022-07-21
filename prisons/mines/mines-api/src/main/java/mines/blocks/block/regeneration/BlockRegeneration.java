@@ -30,16 +30,16 @@ public class BlockRegeneration {
     }
 
     public void makeRegen() {
-        RegenRegistry.get().getRegeneratingBlocks().put(this.blockPosition, this.block);
+        RegenRegistry.getRegeneratingBlocks().put(this.blockPosition, this.block);
         new BukkitRunnable() {
 
             @Override
             public void run() {
-                if (!RegenRegistry.get().getRegeneratingBlocks().containsKey(blockPosition)) return;
+                if (!RegenRegistry.getRegeneratingBlocks().containsKey(blockPosition)) return;
                 if (!(System.currentTimeMillis() >= end)) return;
 
                 player.sendBlockChange(blockPosition, block.getBlockData());
-                RegenRegistry.get().getRegeneratingBlocks().remove(blockPosition);
+                RegenRegistry.getRegeneratingBlocks().remove(blockPosition);
             }
 
         }.runTask(this.instance);

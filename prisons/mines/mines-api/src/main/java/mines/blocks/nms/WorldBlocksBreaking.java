@@ -153,11 +153,9 @@ public class WorldBlocksBreaking {
                 if (worldBlocksBlock == null) {
                     hardnessMultiplier = 1d / (300 / 100d);
                     regenTime = System.currentTimeMillis() + 10 * 1000;
-                    System.out.println("We null bro!");
                 } else {
                     hardnessMultiplier = 1d / (worldBlocksBlock.getHardnessMultiplier() / 100d);
                     regenTime = System.currentTimeMillis() + worldBlocksBlock.getRegenTime() * 1000;
-                    System.out.println("We isnt da big null");
                 }
 
                 if (ProgressRegistry.get().getBlockBreak(blockPosition)) {
@@ -200,14 +198,8 @@ public class WorldBlocksBreaking {
                         continue;
                     }
 
-
-                    PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(
-                        ProgressRegistry.get().getRandomIntegers().get(blockPosition), blockPosition, 0);
-
                     Material material = Material.STONE;
                     player.sendBlockChange(block.getLocation(), material.createBlockData());
-
-                    WorldBlocksInjector.sendPacket(player, packet);
 
                     ProgressRegistry.get().getBlocksBreaking().remove(blockPosition);
                     ProgressRegistry.get().getBlockProgress().remove(blockPosition);

@@ -1,29 +1,23 @@
 package mines;
 
-import lombok.Getter;
+import api.Instances;
 import me.lucko.helper.Commands;
 import me.lucko.helper.plugin.ExtendedJavaPlugin;
-import me.lucko.helper.text3.Text;
 import mines.blocks.block.BlockHandler;
 import mines.blocks.listeners.PlayerJoin;
 import mines.blocks.listeners.PlayerQuit;
 import mines.blocks.listeners.WorldBlocksBreak;
 import mines.blocks.nms.WorldBlocksBreaking;
+import mines.blocks.nms.helper.EntityHelper;
 import mines.blocks.nms.packets.injector.WorldBlocksInjector;
 import mines.blocks.nms.packets.subscription.EventSubscriptions;
 import mines.blocks.regions.WorldBlocksMineRegion;
 import mines.blocks.registry.BlockRegistry;
-import mines.blocks.registry.ProgressRegistry;
 import mines.blocks.registry.RegenRegistry;
 import mines.blocks.registry.RegionRegistry;
 import mines.config.ConfigValue;
 import org.bukkit.Bukkit;
-import org.bukkit.Effect;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.codemc.worldguardwrapper.WorldGuardWrapper;
-
-import javax.swing.plaf.synth.Region;
-import java.util.function.Predicate;
 
 public class Mines extends ExtendedJavaPlugin {
 
@@ -46,6 +40,9 @@ public class Mines extends ExtendedJavaPlugin {
         saveDefaultConfig();
         setupPackets();
 
+        Instances.register(new RegenRegistry());
+        Instances.register(new EntityHelper());
+
         BlockHandler blockHandler = new BlockHandler();
 
         registerEvents();
@@ -64,19 +61,19 @@ public class Mines extends ExtendedJavaPlugin {
 
     }
 
-    public void setupPackets() {
+    private void setupPackets() {
         new EventSubscriptions(this);
         this.injector = new WorldBlocksInjector();
         this.blockBreaking = new WorldBlocksBreaking();
     }
 
-    public void registerEvents() {
+    private void registerEvents() {
         Bukkit.getPluginManager().registerEvents(new PlayerJoin(injector), this);
         Bukkit.getPluginManager().registerEvents(new PlayerQuit(injector), this);
         Bukkit.getPluginManager().registerEvents(new WorldBlocksBreak(), this);
     }
 
-    public void registerCommands() {
+    private void registerCommands() {
         Commands.create()
             .assertPermission("worldblocks.prisons.regions.creation")
             .assertPlayer()
