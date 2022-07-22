@@ -1,10 +1,13 @@
 package mines.blocks.nms.helper;
 
+import api.Instances;
 import io.netty.util.Constant;
+import me.lucko.helper.bossbar.BossBar;
 import me.lucko.helper.bossbar.BossBarColor;
 import me.lucko.helper.bossbar.BossBarStyle;
 import me.lucko.helper.bossbar.BukkitBossBarFactory;
 import mines.Constants;
+import mines.Mines;
 import mines.blocks.block.BlockHandler;
 import mines.blocks.block.factory.interfaces.WorldBlocksBlock;
 import mines.blocks.block.regeneration.BlockRegeneration;
@@ -15,6 +18,7 @@ import mines.blocks.registry.ProgressRegistry;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.EnumDirection;
 import net.minecraft.network.protocol.game.PacketPlayInBlockDig;
+import net.minecraft.network.protocol.game.PacketPlayOutBlockBreak;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockBreakAnimation;
 import net.minecraft.server.level.EntityPlayer;
 import org.bukkit.Bukkit;
@@ -31,137 +35,123 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 public class BlockAnimHelper {
+    public static class BlockAnimation {
+        private Field currentDigTickField, lastDigTickField;
+        private final EntityPlayer entityPlayer;
+        private final Player player;
+        private final Block block;
+        private WorldBlocksBlock worldBlocksBlock;
 
-    private final JavaPlugin instance;
+        private final float damageDoneToBlock;
+        private int currentInt, lastInt;
 
-    public BlockAnimHelper(JavaPlugin instance) {
-        this.instance = instance;
-    }
+        public BlockAnimation(Player player, Block block, float damage) {
+            this.player = player;
+            this.entityPlayer = ((CraftPlayer) player).getHandle();
+            this.block = block;
+            this.damageDoneToBlock = damage;
 
-    public void fracture(Location loc, int radius) {
-        for (Player player: Bukkit.getOnlinePlayers()) {
-            for (Block block : getNearbyBlocks(loc, radius)) {
-                if (!(block.getType() == Material.NOTE_BLOCK)) return;
-                BlockPosition blockPos = ((CraftBlock) block).getPosition();
-                ProgressRegistry.get().getBlocksBreaking().put(blockPos, true);
-                ProgressRegistry.get().copyOldData(blockPos);
-
-                // TODO I need to make it so it does some damage to the blocks around the player, this is an enchant on cosmic
+            if (BlockHandler.getBlock(block.getLocation()) != null) {
+                this.worldBlocksBlock = BlockHandler.getBlock(block.getLocation());
             }
+
+
         }
-    }
 
-    public void shatter() {
-        // TODO I need to make it so I'm able to insta break like 10 - 20 of these blocks.
-    }
-    public void updatePacket() {
+        public void handleAnimation() throws NoSuchFieldException, IllegalAccessException {
+            BlockPosition blockPos = ((CraftBlock) this.block).getPosition();
 
-        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-            for (BlockPosition blockPosition : ProgressRegistry.get().getBlockProgress().keySet()) {
-
-                double progress = ProgressRegistry.get().getBlockProgress().get(blockPosition);
-                int progressInt = (int) progress;
-
-                if (!ProgressRegistry.get().getRandomIntegers().containsKey(blockPosition)) {
-                    Random random = new Random(System.currentTimeMillis());
-                    ProgressRegistry.get().getRandomIntegers().put(blockPosition, random.nextInt(1000));
-                }
-
-                PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(ProgressRegistry.get().getRandomIntegers().get(blockPosition), blockPosition, (progressInt / 10));
-                WorldBlocksInjector.sendPacket(player, packet);
+            if (!isCreative(this.player)) {
+                ProgressRegistry.get().getBlockProgress().put(blockPos, getDamageDoneToBlock());
             }
+
+            completeBreak(blockPos);
+
+            updatePacket();
         }
-    }
 
-    public void progression() {
+        public void updatePacket() {
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player == null) return;
+            for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+                for (BlockPosition blockPosition : ProgressRegistry.get().getBlockProgress().keySet()) {
 
-            try {
-                Block block = player.getTargetBlockExact(5);
+                    double progress = ProgressRegistry.get().getBlockProgress().get(blockPosition);
+                    int progressInt = (int) progress;
 
-                if (block == null) return;
-
-                if (!block.getType().equals(Material.NOTE_BLOCK)) return;
-
-                BlockPosition blockPosition = new BlockPosition(block.getX(), block.getY(), block.getZ());
-
-                WorldBlocksBlock worldBlocksBlock = BlockHandler.getBlock(player.getLocation());
-
-                double hardnessMultiplier;
-                double regenTime;
-
-                if (worldBlocksBlock == null) {
-                    hardnessMultiplier = 1d / (300 / 100d);
-                    regenTime = System.currentTimeMillis() + 10 * 1000;
-                } else {
-                    hardnessMultiplier = 1d / (worldBlocksBlock.getHardnessMultiplier() / 100d);
-                    regenTime = System.currentTimeMillis() + worldBlocksBlock.getRegenTime() * 1000;
-                }
-
-                if (ProgressRegistry.get().getBlockBreak(blockPosition)) {
-                    EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
-
-                    Field currentDigTickField = entityPlayer.d.getClass().getDeclaredField("i");
-                    Field lastDigTickField = entityPlayer.d.getClass().getDeclaredField("g");
-
-                    currentDigTickField.setAccessible(true);
-                    lastDigTickField.setAccessible(true);
-
-                    int currentDigTick = currentDigTickField.getInt(entityPlayer.d);
-                    int lastDigTick = lastDigTickField.getInt(entityPlayer.d);
-
-                    int newDigTick = currentDigTick - lastDigTick;
-
-                    float itemDamage = 0.055555556f;
-                    float newDamage = itemDamage * (float) (newDigTick + 1);
-                    double doubleProgress = (newDamage * 100f) * hardnessMultiplier;
-
-                    ProgressRegistry.get().getBlockProgress().remove(blockPosition);
-
-                    double oldProgress = 0;
-
-                    if (ProgressRegistry.get().getOldBlockProgress().containsKey(blockPosition)) {
-                        oldProgress = ProgressRegistry.get().getOldBlockProgress().get(blockPosition);
+                    if (!ProgressRegistry.get().getRandomIntegers().containsKey(blockPosition)) {
+                        Random random = new Random(System.currentTimeMillis());
+                        ProgressRegistry.get().getRandomIntegers().put(blockPosition, random.nextInt(1000));
                     }
 
-                    if (player.getGameMode() != GameMode.CREATIVE) {
-                        ProgressRegistry.get().getBlockProgress().put(blockPosition, doubleProgress + oldProgress);
-                    }
-
-                    double blockProgress = ProgressRegistry.get().getBlockProgress().get(blockPosition);
-                    double bossBarProgress = blockProgress / 100;
-
-                    if (blockProgress < 100 && blockProgress > -1) {
-                        Constants.progressBossBar.title("&a&lBlock Progress: &f&l" + (Math.round(blockProgress * 100) / 100.0) + "%");
-                        Constants.progressBossBar.addPlayer(player);
-                        Constants.progressBossBar.progress(bossBarProgress);
-                        continue;
-                    }
-
-                    PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(
-                        ProgressRegistry.get().getRandomIntegers().get(blockPosition), blockPosition, 0);
-
-                    Material material = Material.STONE;
-                    player.sendBlockChange(block.getLocation(), material.createBlockData());
-
+                    PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation(ProgressRegistry.get().getRandomIntegers().get(blockPosition), blockPosition, (progressInt / 10));
                     WorldBlocksInjector.sendPacket(player, packet);
-
-                    ProgressRegistry.get().getBlockProgress().remove(blockPosition);
-                    ProgressRegistry.get().getOldBlockProgress().remove(blockPosition);
-
-                    new BlockRegeneration(instance, player, block.getLocation(), block, (long) regenTime);
-                //TODO fix the update for blocks because it doesn't properly update them.
-                    Bukkit.getPluginManager().callEvent(new WorldBlocksBreakEvent(block, player));
-                    Constants.progressBossBar.close();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
 
-        updatePacket();
+        public double getDamageDoneToBlock() throws NoSuchFieldException, IllegalAccessException {
+            BlockPosition blockPos = ((CraftBlock) this.block).getPosition();
+
+            this.currentDigTickField = entityPlayer.d.getClass().getDeclaredField("i");
+            this.lastDigTickField = entityPlayer.d.getClass().getDeclaredField("g");
+
+            currentDigTickField.setAccessible(true);
+            lastDigTickField.setAccessible(true);
+
+            this.currentInt = currentDigTickField.getInt(entityPlayer.d);
+            this.lastInt = lastDigTickField.getInt(entityPlayer.d);
+
+            int newDigTick = currentInt - lastInt;
+
+            float newDamage = damageDoneToBlock * (float) (newDigTick + 1);
+            double doubleProgress = (newDamage * 100f) * this.worldBlocksBlock.getHardnessMultiplier();
+
+            ProgressRegistry.get().getBlockProgress().remove(blockPos);
+
+            double oldProgress = 0;
+
+            if (ProgressRegistry.get().getOldBlockProgress().containsKey(blockPos)) {
+                oldProgress = ProgressRegistry.get().getOldBlockProgress().get(blockPos);
+            }
+
+            return doubleProgress + oldProgress;
+        }
+
+        private void completeBreak(BlockPosition blockPos) {
+            double blockProgress = ProgressRegistry.get().getBlockProgress().get(blockPos);
+            double bossBarProgress = blockProgress / 100;
+
+            updateBars(blockPos, blockProgress, bossBarProgress);
+        }
+
+        public void updateBars(BlockPosition blockPos, double blockProgress, double bossBarProgress) {
+            if (blockProgress < 100 && blockProgress > -1) {
+                Constants.progressBossBar.title("&a&lBlock Progress: &f&l" + (Math.round(blockProgress * 100) / 100) + "%");
+                Constants.progressBossBar.addPlayer(this.player);
+                Constants.progressBossBar.progress(bossBarProgress);
+            } else {
+                ProgressRegistry.get().getBlocksBreaking().remove(blockPos);
+                ProgressRegistry.get().getBlockProgress().remove(blockPos);
+                ProgressRegistry.get().getOldBlockProgress().remove(blockPos);
+
+                new BlockRegeneration(Instances.get(Mines.class), this.player, this.block.getLocation(), this.block, (long) this.worldBlocksBlock.getRegenTime());
+
+                Bukkit.getPluginManager().callEvent(new WorldBlocksBreakEvent(this.block, this.player));
+
+                Constants.progressBossBar.close();
+            }
+        }
+
+        private boolean isCreative(Player player) {
+            return player.getGameMode() == GameMode.CREATIVE;
+        }
+    }
+
+    public void fractureBlock(Player player, Block block, int radius) throws NoSuchFieldException, IllegalAccessException {
+        for (Block nearBlock : getNearbyBlocks(block.getLocation(), radius)) {
+            BlockAnimation anim = new BlockAnimation(player, nearBlock, 0.2f);
+            anim.handleAnimation();
+        }
     }
 
     public List<Block> getNearbyBlocks(Location location, int radius) {
@@ -174,5 +164,4 @@ public class BlockAnimHelper {
             }
         }
         return blocks;
-    }
 }

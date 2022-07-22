@@ -1,10 +1,12 @@
 package mines.blocks.block.regeneration;
 
+import api.Instances;
 import mines.blocks.nms.packets.injector.WorldBlocksInjector;
 import mines.blocks.registry.RegenRegistry;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockChange;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,7 +32,9 @@ public class BlockRegeneration {
     }
 
     public void makeRegen() {
+        this.block.setType(Material.STONE);
         RegenRegistry.getRegeneratingBlocks().put(this.blockPosition, this.block);
+
         new BukkitRunnable() {
 
             @Override
@@ -45,14 +49,14 @@ public class BlockRegeneration {
         }.runTask(this.instance);
     }
 
-    public static void cancelAllRegens(RegenRegistry registry) {
+    public static void cancelRegenerations() {
         for (Player user : Bukkit.getOnlinePlayers()) {
-            for (Map.Entry<Location, Block> blocks : registry.getRegeneratingBlocks().entrySet()) {
+            for (Map.Entry<Location, Block> blocks : RegenRegistry.getRegeneratingBlocks().entrySet()) {
                 Location blockKey = blocks.getKey();
                 Block blockVal = blocks.getValue();
 
                 user.sendBlockChange(blockKey, blockVal.getBlockData());
-                registry.getRegeneratingBlocks().remove(blockKey);
+                RegenRegistry.getRegeneratingBlocks().remove(blockKey);
             }
         }
     }

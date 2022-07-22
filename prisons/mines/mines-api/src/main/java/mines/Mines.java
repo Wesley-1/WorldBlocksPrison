@@ -13,6 +13,7 @@ import mines.blocks.nms.packets.injector.WorldBlocksInjector;
 import mines.blocks.nms.packets.subscription.EventSubscriptions;
 import mines.blocks.regions.WorldBlocksMineRegion;
 import mines.blocks.registry.BlockRegistry;
+import mines.blocks.registry.ProgressRegistry;
 import mines.blocks.registry.RegenRegistry;
 import mines.blocks.registry.RegionRegistry;
 import mines.config.ConfigValue;
@@ -40,8 +41,12 @@ public class Mines extends ExtendedJavaPlugin {
         saveDefaultConfig();
         setupPackets();
 
+        Instances.register(this);
         Instances.register(new RegenRegistry());
         Instances.register(new EntityHelper());
+        Instances.register(new RegionRegistry());
+        Instances.register(new BlockRegistry());
+        Instances.register(new ProgressRegistry());
 
         BlockHandler blockHandler = new BlockHandler();
 
@@ -50,9 +55,11 @@ public class Mines extends ExtendedJavaPlugin {
 
         registerCommands();
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
+       /* Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
             blockBreaking.progression(this);
         }, 2, 2);
+
+        */
 
     }
 

@@ -159,22 +159,22 @@ public class WorldBlocksBreaking {
                 }
 
                 if (ProgressRegistry.get().getBlockBreak(blockPosition)) {
-                    EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
+                        EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
 
-                    Field currentDigTickField = entityPlayer.d.getClass().getDeclaredField("i");
-                    Field lastDigTickField = entityPlayer.d.getClass().getDeclaredField("g");
+                        Field currentDigTickField = entityPlayer.d.getClass().getDeclaredField("i");
+                        Field lastDigTickField = entityPlayer.d.getClass().getDeclaredField("g");
 
-                    currentDigTickField.setAccessible(true);
-                    lastDigTickField.setAccessible(true);
+                        currentDigTickField.setAccessible(true);
+                        lastDigTickField.setAccessible(true);
 
-                    int currentDigTick = currentDigTickField.getInt(entityPlayer.d);
-                    int lastDigTick = lastDigTickField.getInt(entityPlayer.d);
+                        int currentDigTick = currentDigTickField.getInt(entityPlayer.d);
+                        int lastDigTick = lastDigTickField.getInt(entityPlayer.d);
 
-                    int newDigTick = currentDigTick - lastDigTick;
+                        int newDigTick = currentDigTick - lastDigTick;
 
-                    float itemDamage = 0.055555556f;
-                    float newDamage = itemDamage * (float) (newDigTick + 1);
-                    double doubleProgress = (newDamage * 100f) * hardnessMultiplier;
+                        float itemDamage = 0.055555556f;
+                        float newDamage = itemDamage * (float) (newDigTick + 1);
+                        double doubleProgress = (newDamage * 100f) * hardnessMultiplier;
 
                     ProgressRegistry.get().getBlockProgress().remove(blockPosition);
 
